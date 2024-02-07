@@ -1,52 +1,64 @@
 import requests
 from collections import Counter
+import pandas as pd
 
-# 1 - autenticação GitHub
-with open('token_github.txt', 'r') as f:
-    vlr_token = f.readline()
-    
-acess_token = vlr_token
-headers = {
-    'Authorization': 'Bearer ' + acess_token,
-    'X-Github-Api-Version': '2022-11-28'
-}
+# 1 - Utilizando Access Token
+access_token = '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'
+headers = {'Authorization': 'Bearer ' +access_token,
+           'X-GitHub-Api-Version': '2022-11-28'
+           }
 
-# 2 - Mapeando informações
+# 2 - Mapeando Informações 
 base_api = 'https://api.github.com'
-user = 'arthur-santoss'
-url = f'{base_api}/users/{user}/repos'
+owner = 'OneBitCodeBlog'
+url = f'{base_api}/users/{owner}/repos'
 
-# 3 - Organizando os dados
-repost_list = []
-for page_num in range(1,3):
+# 3 - Organizando os Dados
+repos_list = []
+for page_num in range(1, 3):
     try:
-        url_page = f'{url}page={page_num}'
-        response = requests.get(url,headers=headers)
-        repost_list.append(response.json())
+        url_page = f'{url}?page={page_num}'
+        response = requests.get(url_page, headers=headers)
+        repos_list.append(response.json())
     except:
-        repost_list.append(None)
+        repos_list.append(None)
         
-# 4 - Apresentando os dados
-# print(len(repost_list))
-# print(repost_list[0][2]['name'])
+# print(repos_list)
+# print(len(repos_list)) # Primeira página
+# print(len(repos_list[0])) # Na primeira página tem 30 projetos
 
-# 5 - Pegando o nome de cada repositório
+# 4 - Filtrando Resultados
+# print(repos_list[0][2]) # página - repositório
+print(repos_list[0][2]['name']) # página - repositório
+
+# 5 - Pegando apenas o nome
 name_repos = []
-for page in repost_list:
+for page in repos_list:
     for repo in page:
-        # print(repo['name'])
         name_repos.append(repo['name'])
-# print(len(name_repos))
-# print(name_repos[:10])
+        
+print(name_repos[:10]) # pega os 10 primeiros repositórios
+print(len(name_repos))
 
-# 6 - pegando a linguagem de cada repositório
+# 6 - Pegando a linguagem dos repositórios
+# print(repos_list[1][1]['language'])
 lang_repos = []
-for page in repost_list:
+for page in repos_list:
     for repo in page:
         lang_repos.append(repo['language'])
-# print(len(lang_repos))
-# print(lang_repos[:10])        
 
-# 7 - contando ocorrências das linguagens
+# print(len(lang_repos))
+# print(lang_repos)
+
+# 7 - Contando ocorrências das linguagens
 print(Counter(lang_repos))
 
+# 8 - Criando Dataframe
+
+dados_obc = pd.DataFrame()
+dados_obc['repo_name'] = name_repos
+dados_obc['repo_lang'] = lang_repos
+# print(dados_obc)
+
+# 9 - Exportando para CSV
+dados_obc.to_csv('obc.csv')
